@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# scheduler / extractor runtime artifacts
+*.tmp
+*.extracted.txt
+
+# a learner's private study state should never be committed
+.mastery/
+mastery-*/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
