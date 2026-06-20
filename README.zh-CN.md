@@ -34,8 +34,8 @@
 
 `mastery-loop` 是一个标准技能文件夹，放到你的 agent 查找技能的位置即可：
 
-- **Claude Code：** `git clone https://github.com/<你>/mastery-loop ~/.claude/skills/mastery-loop`
-- **Codex：** `git clone https://github.com/<你>/mastery-loop ~/.codex/skills/mastery-loop`
+- **Claude Code：** `git clone https://github.com/all666666all/mastery-loop ~/.claude/skills/mastery-loop`
+- **Codex：** `git clone https://github.com/all666666all/mastery-loop ~/.codex/skills/mastery-loop`
 - **Claude Cowork / 桌面端：** 从 releases 安装 `mastery-loop.skill` 包，或把文件夹放进你的技能目录。
 
 然后说：*"用 mastery-loop 帮我学 ‹你的主题›。"*

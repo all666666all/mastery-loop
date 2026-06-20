@@ -52,8 +52,8 @@ Obsidian is optional).
 
 `mastery-loop` is a standard skill folder. Put it where your agent looks for skills:
 
-- **Claude Code:** `git clone https://github.com/<you>/mastery-loop ~/.claude/skills/mastery-loop`
-- **Codex:** `git clone https://github.com/<you>/mastery-loop ~/.codex/skills/mastery-loop`
+- **Claude Code:** `git clone https://github.com/all666666all/mastery-loop ~/.claude/skills/mastery-loop`
+- **Codex:** `git clone https://github.com/all666666all/mastery-loop ~/.codex/skills/mastery-loop`
 - **Claude Cowork / desktop:** install the `mastery-loop.skill` bundle from the
   releases, or drop the folder into your skills directory.
 
