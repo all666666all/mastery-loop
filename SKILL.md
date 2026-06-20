@@ -8,10 +8,17 @@ description: >-
   scheduler, with interleaving, Feynman checks, calibration, and error-driven
   review, and it adapts to how each individual learner learns. Built for total
   beginners with zero background in the subject. USE THIS whenever the user wants
-  to study, learn, or master a topic, prepare for an exam, "finally remember"
-  something, stop forgetting, review course material, or make flashcards/quizzes
-  that schedule themselves — even if they only say "help me learn X" or "I have
-  an exam" and never mention spaced repetition.
+  to study, learn, or master a topic over time, prepare for an exam, "finally
+  remember" something, stop forgetting, review course material, or get
+  flashcards/quizzes that keep testing them on a schedule — even if they only say
+  "help me learn X", "I have an exam", or "let's do today's review", and never
+  mention spaced repetition. Do NOT use it for one-off requests with no ongoing
+  study intent: summarizing, translating, or explaining a passage; writing an
+  essay; answering a single question; or just generating and exporting a
+  flashcard/Anki deck when the user says that's all they need and doesn't want
+  recurring review. For a single explanation of one concept (teach me / explain /
+  ELI5 / quiz me on this), prefer the sibling "learn" skill; mastery-loop is for
+  ongoing study of a body of material toward lasting retention.
 ---
 
 # mastery-loop
@@ -72,7 +79,9 @@ They never touch files, scripts, JSON, or Obsidian. You drive it all in chat.
 
 ## Workspace layout (you create and maintain this)
 
-Create a folder for the learner's subject (default: `./mastery-<subject>/`). Inside:
+Create a folder for the learner's subject (default: `./mastery-<subject>/`, using an
+**English slug** for `<subject>` even when the learner's language isn't English, so
+filenames stay stable). Inside:
 
 ```
 mastery-<subject>/
@@ -92,9 +101,13 @@ Copy the starting `learner.md` and `constraints.md` from `templates/`.
 
 ## Setup (silent, once)
 
-Find `scheduler.py` (this skill's `scripts/`). Confirm `python3` runs. Call the
-script with `--store <workspace>/items.json` every time. The full command
-reference is `references/scheduler.md` — read it before first use.
+Find `scheduler.py` in this skill's `scripts/`. Every scheduler call uses the exact
+form `python3 scripts/scheduler.py --store <ws>/items.json …` — include the full
+script path and `--store` every time, because each shell call is independent (there
+is no saved working directory). Item `<id>`s come from the JSON that `add` and `due`
+print — read them from there, never invent them. If `python3` can't run at all, tell
+the learner the engine needs Python and pause rather than faking a schedule by hand.
+The full command reference is `references/scheduler.md` — read it before first use.
 
 ---
 
@@ -127,8 +140,9 @@ anti-pattern this skill exists to kill).
    matters." Save as `map.md` (template in `templates/map.md`). The map is the
    progressive-disclosure hub — one-line entries, details live in items/knowledge.
 
-5. **Atomize the first unit into items.** Write active-recall items for unit 1
-   only: types `recall`, `cloze`, `problem`, `concept`. Follow
+5. **Atomize the first unit into items.** "Unit 1" = the first topic in `map.md`
+   (or the first couple, if each is tiny). Write active-recall items for it only:
+   types `recall`, `cloze`, `problem`, `concept`. Follow
    `references/item-writing.md` (atomic, one fact each, demands retrieval not
    recognition, no give-aways). Tag each with its topic slug for interleaving.
 
@@ -137,7 +151,10 @@ anti-pattern this skill exists to kill).
    the material (no hallucinated facts)? Atomic? Does answering actually require
    recall? Is the answer unambiguous? Drop or fix every item that fails. A wrong
    item is worse than no item — the scheduler would drill the error for weeks. If a
-   fact isn't in the materials, mark it clearly as your addition, not source.
+   fact isn't in the materials, mark it clearly as your addition, not source. When
+   you built the map from your own knowledge (no materials at all), hold the same bar
+   with a substitute test: each item must be standard/uncontested, internally
+   consistent, and labelled AI-sourced.
 
 7. **Create the store and add items.** Always pass `--store <ws>/items.json`.
    `python3 scripts/scheduler.py --store <ws>/items.json init [--exam YYYY-MM-DD]`.
@@ -149,8 +166,10 @@ anti-pattern this skill exists to kill).
 
 8. **Teach + test the first chunk now.** Don't end on a wall of cards. Teach the
    first concept (concrete example → intuition → the formal idea → why it matters),
-   then immediately run 2-3 of its items as real retrieval. End by inviting them
-   back with "today" tomorrow.
+   then immediately run 2-3 of its items as real retrieval. Seed the compounding
+   loop: write what you already learned about the learner into `learner.md`, then run
+   `python3 scripts/scheduler.py --store <ws>/items.json distill --learner "<one line>"`
+   so it improves from day one. End by inviting them back with "today" tomorrow.
 
 ---
 
@@ -162,15 +181,17 @@ This is the product. Keep it ~15-30 minutes. Plain language, one item at a time.
    They tell you this person's pace, recurring error types, confusion pairs, and
    the rules you distilled last time. This is how the system gets smarter each run.
 
-2. **Get today's queue.** `python3 scheduler.py --store <ws>/items.json due`. It
-   returns interleaved reviews + a small batch of new items. **Respect the
+2. **Get today's queue.** `python3 scripts/scheduler.py --store <ws>/items.json due`.
+   It returns interleaved reviews + a small batch of new items. **Respect the
    interleaving — do not regroup by topic**; mixing is what trains the learner to
    *choose* the right method, not just execute a known one.
 
 3. **Run each review as true retrieval:**
    - Show the `front` ONLY. Never reveal the answer first — recognition feels like
      knowing but isn't.
-   - Get their attempt. Then ask how sure they were (1-5), or infer it.
+   - Get their attempt. Then ask how sure they were (1-5). If they won't give a
+     number, ask once more or omit `--confidence` — never pass a *guessed* confidence,
+     since it would pollute the calibration stat.
    - Reveal the `back`. Judge their answer, map it to the 0-5 scale, and call
      `python3 scripts/scheduler.py --store <ws>/items.json grade --id <id> --grade <0-5> --confidence <1-5>`.
      **The scale drives every interval, so get it right: 0** = blank · **1** =
@@ -186,15 +207,18 @@ This is the product. Keep it ~15-30 minutes. Plain language, one item at a time.
 
 4. **One Feynman pass.** Pick a shaky concept: "explain it to me like I've never
    heard of it." Where their explanation stalls or hand-waves is the real gap —
-   write a new item targeting exactly that and add it.
+   write a new item targeting exactly that, give it the same light check as step 5,
+   then add it.
 
 5. **A small dose of new material.** Only after reviews. Teach one new chunk
-   (example → intuition → formal → why), atomize it, and `add` it. Give the new
-   items a *light* check (one pass: faithful to the source? atomic? not a
-   give-away?) — the full refutation VERIFY GATE belongs to onboarding; daily new
-   volume is small, so a quick check keeps the session moving. Reviews come first.
+   (example → intuition → formal → why), atomize it, give it a *light* check (one
+   pass: faithful to the source? atomic? not a give-away? — the full refutation
+   VERIFY GATE belongs to onboarding), `add` it, **then immediately test one of the
+   new items as retrieval** — don't teach-and-move-on; retrieval is the engine. Keep
+   new volume small; reviews always come first.
 
-6. **Show calibration.** `... stats` returns predicted-vs-actual. Only surface it
+6. **Show calibration.** `python3 scripts/scheduler.py --store <ws>/items.json stats`
+   returns predicted-vs-actual. Only surface it
    once `calibration.enough_data` is true (≥5 graded attempts); before that there's
    nothing meaningful to show, so skip it. When it's ready, say it gently: "you were
    sure on 4 and right on 3 — this one's the gap to watch." Seeing the gap between
@@ -209,7 +233,8 @@ This is the product. Keep it ~15-30 minutes. Plain language, one item at a time.
    - `constraints.md`: hard rules distilled from today's mistakes, e.g. "always
      contrast X vs Y for this learner," "they drop items after one correct — force
      an extra rep." These load automatically next session and stop repeats.
-   - `map.md` mastery markers from `stats` (🔴/🟡/🟢 per topic).
+   - `map.md` mastery markers from `stats` (🔴/🟡/🟢 per topic) — `map.md` is plain
+     Markdown you may hand-edit; only `items.json` is off-limits.
    - Then record it mechanically:
      `python3 scripts/scheduler.py --store <ws>/items.json distill --learner "<one line>" --constraint "<one rule>"`.
      `due` and `stats` report `days_since_distill`; if it ever exceeds 1 you've been

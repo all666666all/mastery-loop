@@ -22,8 +22,9 @@ Pass `--exam ""` (empty) to clear a deadline.
 
 ### add — append items (de-duplicated)
 ```
-# Preferred: write items to a UTF-8 (no BOM) .json file, then:
-python3 scheduler.py --store WS/items.json add --json items_to_add.json
+# Preferred: write items to a UTF-8 (no BOM) .json file — name it _add.json,
+# distinct from the engine-owned items.json — then:
+python3 scheduler.py --store WS/items.json add --json _add.json
 # Alternative (stdin) — fine on Unix shells, unreliable for non-ASCII on PowerShell:
 echo '[{"topic":"hashing","front":"...","back":"...","type":"recall"}]' \
   | python3 scheduler.py --store WS/items.json add --json -
